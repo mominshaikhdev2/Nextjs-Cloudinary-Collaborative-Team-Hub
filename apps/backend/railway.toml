@@ -1,9 +1,9 @@
 [build]
   builder = "nixpacks"
-  buildCommand = "pnpm install && pnpm db:migrate:deploy && pnpm db:generate"
+  buildCommand = "npm install && npm run db:migrate:deploy && npm run db:generate"
 
 [deploy]
-  startCommand = "pnpm start"
+  startCommand = "npm start"
   healthcheckPath = "/api/health"
   healthcheckTimeout = 30
   restartPolicyType = "on_failure"
