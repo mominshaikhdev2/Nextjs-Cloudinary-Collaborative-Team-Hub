@@ -1,0 +1,9 @@
+[build]
+  builder = "nixpacks"
+  buildCommand = "pnpm install && pnpm db:migrate:deploy && pnpm db:generate"
+
+[deploy]
+  startCommand = "pnpm start"
+  healthcheckPath = "/api/health"
+  healthcheckTimeout = 30
+  restartPolicyType = "on_failure"
