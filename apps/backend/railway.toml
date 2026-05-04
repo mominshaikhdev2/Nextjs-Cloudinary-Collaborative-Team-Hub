@@ -1,7 +1,7 @@
 [build]
   builder = "nixpacks"
   # Tell pnpm to look specifically at the backend package
-  buildCommand = "pnpm install"
+  buildCommand = "pnpm install && pnpm db:generate"
 
 [deploy]
   # Target the start script inside the backend package
