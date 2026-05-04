@@ -1,11 +1,11 @@
 [build]
   builder = "nixpacks"
   # Tell pnpm to look specifically at the backend package
-  buildCommand = "pnpm install && pnpm --filter backend build"
+  buildCommand = "pnpm install"
 
 [deploy]
   # Target the start script inside the backend package
-  startCommand = "pnpm --filter backend start"
+  startCommand = "node src/index.js"
   healthcheckPath = "/api/health"
-  healthcheckTimeout = 30
+  healthcheckTimeout = 60
   restartPolicyType = "on_failure"
