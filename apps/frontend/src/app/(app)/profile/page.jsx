@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef } from 'react';
-import { userApi } from '@/lib/api';
-import { useAuthStore } from '@/store/authStore';
+import { userApi } from '@/lib/api1';
+import { useAuthStore } from '@/store/authStore1';
 import Avatar from '@/components/ui/Avatar';
 import toast from 'react-hot-toast';
 

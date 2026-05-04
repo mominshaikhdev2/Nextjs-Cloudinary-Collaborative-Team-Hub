@@ -1,10 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { workspaceApi } from '@/lib/api';
-import api from '@/lib/api';
+import { workspaceApi } from '@/lib/api1';
+import api from '@/lib/api1';
 import { useWorkspaceStore } from '@/store/workspaceStore';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore1';
 import {
   DEFAULT_MATRIX,
   PERMISSION_GROUPS,

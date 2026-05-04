@@ -2,9 +2,9 @@
 import { useState } from 'react';
 import Avatar from '@/components/ui/Avatar';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { announcementApi } from '@/lib/api';
+import { announcementApi } from '@/lib/api1';
 import { formatDistanceToNow } from 'date-fns';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore1';
 import toast from 'react-hot-toast';
 
 const QUICK_EMOJIS = ['👍', '🎉', '❤️', '🚀', '👀', '✅'];

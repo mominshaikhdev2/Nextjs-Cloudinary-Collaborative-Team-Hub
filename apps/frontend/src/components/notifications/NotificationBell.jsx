@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { notificationApi } from '@/lib/api';
+import { notificationApi } from '@/lib/api1';
 import { useUIStore } from '@/store/uiStore';
 import { getSocket } from '@/lib/socket';
 import { formatDistanceToNow } from 'date-fns';

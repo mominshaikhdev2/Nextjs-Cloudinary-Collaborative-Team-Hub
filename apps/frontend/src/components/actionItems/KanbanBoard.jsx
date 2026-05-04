@@ -1,7 +1,7 @@
 'use client';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import KanbanCard from './KanbanCard';
-import { actionItemApi } from '@/lib/api';
+import { actionItemApi } from '@/lib/api1';
 import toast from 'react-hot-toast';
 
 const COLUMNS = [

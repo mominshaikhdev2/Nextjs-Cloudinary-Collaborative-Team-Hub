@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { workspaceApi } from '@/lib/api';
+import { workspaceApi } from '@/lib/api1';
 
 export const useWorkspaceStore = create((set, get) => ({
   workspaces: [],

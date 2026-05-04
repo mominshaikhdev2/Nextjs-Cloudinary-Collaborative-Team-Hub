@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { goalApi, workspaceApi } from '@/lib/api';
+import { goalApi, workspaceApi } from '@/lib/api1';
 import toast from 'react-hot-toast';
 
 const STATUS_OPTIONS = ['NOT_STARTED', 'IN_PROGRESS', 'AT_RISK', 'COMPLETED'];

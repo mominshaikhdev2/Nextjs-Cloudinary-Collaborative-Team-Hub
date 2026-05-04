@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { goalApi, milestoneApi } from '@/lib/api';
+import { goalApi, milestoneApi } from '@/lib/api1';
 import Badge from '@/components/ui/Badge';
 import Avatar from '@/components/ui/Avatar';
 import { format, formatDistanceToNow } from 'date-fns';

@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useUIStore } from '@/store/uiStore';
 import Avatar from '@/components/ui/Avatar';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore1';
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: '▦' },

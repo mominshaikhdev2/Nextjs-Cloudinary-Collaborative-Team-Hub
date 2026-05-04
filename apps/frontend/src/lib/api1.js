@@ -2,44 +2,37 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
-  withCredentials: true, // needed for cookies
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 });
 
-// ── Attach access token from memory on every request ──
+// Attach access token from memory on every request
 api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined' && window.__accessToken) {
-    config.headers.Authorization = `Bearer ${window.__accessToken}`;
+  if (typeof window !== 'undefined') {
+    const token = window.__accessToken;
+    if (token) config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-// ── Silent token refresh on 401 ───────────────────────
 let isRefreshing = false;
 let refreshQueue = [];
 
+// Silently refresh token on 401
 api.interceptors.response.use(
   (res) => res,
   async (err) => {
     const original = err.config;
-
-    // Only attempt refresh on 401 with TOKEN_EXPIRED code,
-    // and only once per request (prevent infinite loops)
-    const isExpired =
+    if (
       err.response?.status === 401 &&
-      (err.response?.data?.code === 'TOKEN_EXPIRED' ||
-        err.response?.data?.error === 'Token expired');
-
-    // Never retry the refresh endpoint itself
-    const isRefreshEndpoint = original.url?.includes('/auth/refresh');
-
-    if (isExpired && !original._retry && !isRefreshEndpoint) {
+      err.response?.data?.code === 'TOKEN_EXPIRED' &&
+      !original._retry
+    ) {
       if (isRefreshing) {
-        // Queue this request until refresh completes
         return new Promise((resolve, reject) => {
           refreshQueue.push({ resolve, reject });
-        }).then((newToken) => {
-          original.headers.Authorization = `Bearer ${newToken}`;
+        }).then((token) => {
+          original.headers.Authorization = `Bearer ${token}`;
           return api(original);
         });
       }
@@ -49,49 +42,21 @@ api.interceptors.response.use(
 
       try {
         const { data } = await api.post('/api/auth/refresh');
-        const newToken = data.accessToken;
-
-        if (typeof window !== 'undefined') window.__accessToken = newToken;
-
-        // Update Zustand store (lazy import to avoid circular dep)
-        try {
-          const { useAuthStore } = await import('@/store/authStore');
-          useAuthStore.setState({ accessToken: newToken });
-        } catch (_) {}
-
-        // Flush the queue
-        refreshQueue.forEach((q) => q.resolve(newToken));
+        window.__accessToken = data.accessToken;
+        refreshQueue.forEach((q) => q.resolve(data.accessToken));
         refreshQueue = [];
-
-        // Retry the original request
-        original.headers.Authorization = `Bearer ${newToken}`;
+        original.headers.Authorization = `Bearer ${data.accessToken}`;
         return api(original);
       } catch (refreshErr) {
         refreshQueue.forEach((q) => q.reject(refreshErr));
         refreshQueue = [];
-
-        if (typeof window !== 'undefined') window.__accessToken = null;
-
-        // Clear auth state and redirect
-        try {
-          const { useAuthStore } = await import('@/store/authStore');
-          useAuthStore.setState({
-            user: null,
-            accessToken: null,
-            isAuthenticated: false,
-          });
-        } catch (_) {}
-
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
-        }
-
+        window.__accessToken = null;
+        window.location.href = '/login';
         return Promise.reject(refreshErr);
       } finally {
         isRefreshing = false;
       }
     }
-
     return Promise.reject(err);
   }
 );
@@ -111,9 +76,7 @@ export const authApi = {
 export const userApi = {
   updateProfile: (data) => api.patch('/api/users/profile', data),
   uploadAvatar: (formData) =>
-    api.post('/api/users/avatar', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+    api.post('/api/users/avatar', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   changePassword: (data) => api.patch('/api/users/password', data),
 };
 
@@ -126,25 +89,18 @@ export const workspaceApi = {
   delete: (id) => api.delete(`/api/workspaces/${id}`),
   getMembers: (id) => api.get(`/api/workspaces/${id}/members`),
   invite: (id, data) => api.post(`/api/workspaces/${id}/invite`, data),
-  updateMemberRole: (id, userId, data) =>
-    api.patch(`/api/workspaces/${id}/members/${userId}/role`, data),
-  removeMember: (id, userId) =>
-    api.delete(`/api/workspaces/${id}/members/${userId}`),
+  updateMemberRole: (id, userId, data) => api.patch(`/api/workspaces/${id}/members/${userId}/role`, data),
+  removeMember: (id, userId) => api.delete(`/api/workspaces/${id}/members/${userId}`),
   leave: (id) => api.post(`/api/workspaces/${id}/leave`),
 };
 
 // ── Goals ───────────────────────────────────────────────
 export const goalApi = {
-  list: (workspaceId, params) =>
-    api.get(`/api/workspaces/${workspaceId}/goals`, { params }),
-  create: (workspaceId, data) =>
-    api.post(`/api/workspaces/${workspaceId}/goals`, data),
-  get: (workspaceId, goalId) =>
-    api.get(`/api/workspaces/${workspaceId}/goals/${goalId}`),
-  update: (workspaceId, goalId, data) =>
-    api.patch(`/api/workspaces/${workspaceId}/goals/${goalId}`, data),
-  delete: (workspaceId, goalId) =>
-    api.delete(`/api/workspaces/${workspaceId}/goals/${goalId}`),
+  list: (workspaceId, params) => api.get(`/api/workspaces/${workspaceId}/goals`, { params }),
+  create: (workspaceId, data) => api.post(`/api/workspaces/${workspaceId}/goals`, data),
+  get: (workspaceId, goalId) => api.get(`/api/workspaces/${workspaceId}/goals/${goalId}`),
+  update: (workspaceId, goalId, data) => api.patch(`/api/workspaces/${workspaceId}/goals/${goalId}`, data),
+  delete: (workspaceId, goalId) => api.delete(`/api/workspaces/${workspaceId}/goals/${goalId}`),
   getUpdates: (workspaceId, goalId, params) =>
     api.get(`/api/workspaces/${workspaceId}/goals/${goalId}/updates`, { params }),
   addUpdate: (workspaceId, goalId, data) =>
@@ -153,69 +109,47 @@ export const goalApi = {
 
 // ── Milestones ──────────────────────────────────────────
 export const milestoneApi = {
-  list: (workspaceId, goalId) =>
-    api.get(`/api/workspaces/${workspaceId}/goals/${goalId}/milestones`),
+  list: (workspaceId, goalId) => api.get(`/api/workspaces/${workspaceId}/goals/${goalId}/milestones`),
   create: (workspaceId, goalId, data) =>
     api.post(`/api/workspaces/${workspaceId}/goals/${goalId}/milestones`, data),
   update: (workspaceId, goalId, milestoneId, data) =>
-    api.patch(
-      `/api/workspaces/${workspaceId}/goals/${goalId}/milestones/${milestoneId}`,
-      data
-    ),
+    api.patch(`/api/workspaces/${workspaceId}/goals/${goalId}/milestones/${milestoneId}`, data),
   delete: (workspaceId, goalId, milestoneId) =>
-    api.delete(
-      `/api/workspaces/${workspaceId}/goals/${goalId}/milestones/${milestoneId}`
-    ),
+    api.delete(`/api/workspaces/${workspaceId}/goals/${goalId}/milestones/${milestoneId}`),
 };
 
 // ── Announcements ───────────────────────────────────────
 export const announcementApi = {
-  list: (workspaceId, params) =>
-    api.get(`/api/workspaces/${workspaceId}/announcements`, { params }),
-  create: (workspaceId, data) =>
-    api.post(`/api/workspaces/${workspaceId}/announcements`, data),
-  update: (workspaceId, id, data) =>
-    api.patch(`/api/workspaces/${workspaceId}/announcements/${id}`, data),
-  delete: (workspaceId, id) =>
-    api.delete(`/api/workspaces/${workspaceId}/announcements/${id}`),
-  togglePin: (workspaceId, id) =>
-    api.patch(`/api/workspaces/${workspaceId}/announcements/${id}/pin`),
+  list: (workspaceId, params) => api.get(`/api/workspaces/${workspaceId}/announcements`, { params }),
+  create: (workspaceId, data) => api.post(`/api/workspaces/${workspaceId}/announcements`, data),
+  update: (workspaceId, id, data) => api.patch(`/api/workspaces/${workspaceId}/announcements/${id}`, data),
+  delete: (workspaceId, id) => api.delete(`/api/workspaces/${workspaceId}/announcements/${id}`),
+  togglePin: (workspaceId, id) => api.patch(`/api/workspaces/${workspaceId}/announcements/${id}/pin`),
   addReaction: (workspaceId, id, data) =>
     api.post(`/api/workspaces/${workspaceId}/announcements/${id}/reactions`, data),
-  getComments: (workspaceId, id) =>
-    api.get(`/api/workspaces/${workspaceId}/announcements/${id}/comments`),
+  getComments: (workspaceId, id) => api.get(`/api/workspaces/${workspaceId}/announcements/${id}/comments`),
   addComment: (workspaceId, id, data) =>
     api.post(`/api/workspaces/${workspaceId}/announcements/${id}/comments`, data),
   deleteComment: (workspaceId, id, commentId) =>
-    api.delete(
-      `/api/workspaces/${workspaceId}/announcements/${id}/comments/${commentId}`
-    ),
+    api.delete(`/api/workspaces/${workspaceId}/announcements/${id}/comments/${commentId}`),
 };
 
 // ── Action Items ────────────────────────────────────────
 export const actionItemApi = {
-  list: (workspaceId, params) =>
-    api.get(`/api/workspaces/${workspaceId}/action-items`, { params }),
-  create: (workspaceId, data) =>
-    api.post(`/api/workspaces/${workspaceId}/action-items`, data),
-  update: (workspaceId, id, data) =>
-    api.patch(`/api/workspaces/${workspaceId}/action-items/${id}`, data),
-  delete: (workspaceId, id) =>
-    api.delete(`/api/workspaces/${workspaceId}/action-items/${id}`),
-  reorder: (workspaceId, data) =>
-    api.patch(`/api/workspaces/${workspaceId}/action-items/reorder`, data),
+  list: (workspaceId, params) => api.get(`/api/workspaces/${workspaceId}/action-items`, { params }),
+  create: (workspaceId, data) => api.post(`/api/workspaces/${workspaceId}/action-items`, data),
+  update: (workspaceId, id, data) => api.patch(`/api/workspaces/${workspaceId}/action-items/${id}`, data),
+  delete: (workspaceId, id) => api.delete(`/api/workspaces/${workspaceId}/action-items/${id}`),
+  reorder: (workspaceId, data) => api.patch(`/api/workspaces/${workspaceId}/action-items/reorder`, data),
 };
 
 // ── Analytics ───────────────────────────────────────────
 export const analyticsApi = {
-  stats: (workspaceId) =>
-    api.get(`/api/workspaces/${workspaceId}/analytics/stats`),
+  stats: (workspaceId) => api.get(`/api/workspaces/${workspaceId}/analytics/stats`),
   goalChart: (workspaceId, params) =>
     api.get(`/api/workspaces/${workspaceId}/analytics/goal-chart`, { params }),
   export: (workspaceId) =>
-    api.get(`/api/workspaces/${workspaceId}/analytics/export`, {
-      responseType: 'blob',
-    }),
+    api.get(`/api/workspaces/${workspaceId}/analytics/export`, { responseType: 'blob' }),
   activity: (workspaceId, params) =>
     api.get(`/api/workspaces/${workspaceId}/analytics/activity`, { params }),
 };

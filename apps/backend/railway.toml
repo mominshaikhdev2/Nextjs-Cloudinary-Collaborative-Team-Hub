@@ -1,6 +1,6 @@
 [build]
   builder = "nixpacks"
-  buildCommand = "pnpm install && pnpm --filter backend db:migrate:deploy && pnpm --filter backend db:generate"
+  buildCommand = "pnpm install"
 
 [deploy]
   startCommand = "pnpm start"

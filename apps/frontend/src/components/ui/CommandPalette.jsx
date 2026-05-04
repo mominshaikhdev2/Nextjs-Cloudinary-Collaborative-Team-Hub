@@ -3,7 +3,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useThemeStore } from '@/store/themeStore';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore1';
 import toast from 'react-hot-toast';
 
 // ── Command definitions ────────────────────────────────

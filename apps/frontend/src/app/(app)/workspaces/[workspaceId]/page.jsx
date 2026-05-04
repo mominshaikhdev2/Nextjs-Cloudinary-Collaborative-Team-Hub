@@ -2,10 +2,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { workspaceApi, analyticsApi } from '@/lib/api';
+import { workspaceApi, analyticsApi } from '@/lib/api1';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { connectSocket, joinWorkspace, leaveWorkspaceRoom } from '@/lib/socket';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore1';
 import Avatar from '@/components/ui/Avatar';
 import Badge from '@/components/ui/Badge';
 import { formatDistanceToNow } from 'date-fns';

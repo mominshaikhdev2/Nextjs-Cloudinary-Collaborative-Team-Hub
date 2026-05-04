@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { workspaceApi } from '@/lib/api';
+import { workspaceApi } from '@/lib/api1';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 
 const COLORS = ['#7C3AED', '#2563EB', '#059669', '#D97706', '#DC2626', '#7C3AED', '#0891B2', '#BE185D'];

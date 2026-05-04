@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useWorkspaceStore } from '@/store/workspaceStore';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore1';
 import { formatDistanceToNow } from 'date-fns';
 
 export default function DashboardPage() {

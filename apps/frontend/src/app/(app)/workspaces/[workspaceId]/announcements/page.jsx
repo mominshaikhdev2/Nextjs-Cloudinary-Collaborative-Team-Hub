@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { announcementApi } from '@/lib/api';
+import { announcementApi } from '@/lib/api1';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import AnnouncementCard from '@/components/announcements/AnnouncementCard';
 import AnnouncementForm from '@/components/announcements/AnnouncementForm';

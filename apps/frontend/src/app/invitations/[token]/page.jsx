@@ -2,9 +2,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import api from '@/lib/api';
-import { useAuthStore } from '@/store/authStore';
-import { workspaceApi } from '@/lib/api';
+import api from '@/lib/api1';
+import { useAuthStore } from '@/store/authStore1';
+import { workspaceApi } from '@/lib/api1';
 import toast from 'react-hot-toast';
 
 export default function InvitationPage() {

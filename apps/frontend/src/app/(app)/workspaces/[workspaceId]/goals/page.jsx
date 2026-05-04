@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { goalApi } from '@/lib/api';
+import { goalApi } from '@/lib/api1';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useOptimistic } from '@/hooks/useOptimistic';
 import GoalCard from '@/components/goals/GoalCard';

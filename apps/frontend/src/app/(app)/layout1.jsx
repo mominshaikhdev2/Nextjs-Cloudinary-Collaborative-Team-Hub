@@ -1,7 +1,7 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore1';
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useThemeStore } from '@/store/themeStore';
 import Sidebar from '@/components/layout/Sidebar';
@@ -11,65 +11,31 @@ import { useUIStore } from '@/store/uiStore';
 
 export default function AppLayout({ children }) {
   const router = useRouter();
-  const { isAuthenticated, isLoading, initialize, user } = useAuthStore();
+  const { isAuthenticated, isLoading, initialize } = useAuthStore();
   const { fetchWorkspaces } = useWorkspaceStore();
   const { sidebarOpen, setSidebarOpen } = useUIStore();
+  const { initTheme, toggleTheme } = useThemeStore();
   const [paletteOpen, setPaletteOpen] = useState(false);
 
-  // Use a ref to ensure initialize only runs once even in React StrictMode
-  const initialized = useRef(false);
-
-  // Try to get themeStore safely (it may not exist yet if bonus feature not added)
-  let initTheme, toggleTheme;
-  try {
-    const themeStore = useThemeStore();
-    initTheme = themeStore.initTheme;
-    toggleTheme = themeStore.toggleTheme;
-  } catch (_) {
-    initTheme = () => {};
-    toggleTheme = () => {};
-  }
-
+  // 1. Fixed: Added missing dependencies and used an async wrapper[cite: 5]
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
+    const initApp = async () => {
+      // Initialize theme
+      initTheme();
 
-    // Initialize theme (no-flash — inline script handles first paint)
-    initTheme?.();
-
-    // If Zustand already has authenticated state (e.g. just logged in and
-    // navigated here), we can skip the full initialize() and go directly to
-    // fetching workspaces. initialize() is still called to refresh the token
-    // and re-hydrate the user object from the server.
-    const { isAuthenticated: alreadyAuth, user: alreadyUser } = useAuthStore.getState();
-
-    if (alreadyAuth && alreadyUser) {
-      // Already authenticated — fetch workspaces and return.
-      // initialize() will still run in the background to refresh the token
-      // silently, but we don't wait for it before showing the UI.
-      fetchWorkspaces();
-      initialize(); // fire-and-forget — token refresh in background
-      return;
-    }
-
-    // Not yet authenticated — run initialize() and redirect if it fails
-    initialize().then(() => {
-      const { isAuthenticated: authAfterInit } = useAuthStore.getState();
-      if (!authAfterInit) {
+      // Initialize auth and handle routing
+      await initialize();
+      
+      const { isAuthenticated: currentAuth } = useAuthStore.getState();
+      if (!currentAuth) {
         router.replace('/login');
       } else {
         fetchWorkspaces();
       }
-    });
-  }, []);
+    };
 
-  // Watch isAuthenticated — if it drops to false after we are mounted,
-  // redirect to login (handles token expiry mid-session)
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.replace('/login');
-    }
-  }, [isAuthenticated, isLoading]);
+    initApp();
+  }, [fetchWorkspaces, initTheme, initialize, router]); // Dependency array satisfied[cite: 5]
 
   // ── Global keyboard shortcuts ──────────────────────────
   useEffect(() => {
@@ -88,10 +54,16 @@ export default function AppLayout({ children }) {
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
       if (document.activeElement?.contentEditable === 'true') return;
 
-      if (e.key === 't' || e.key === 'T') toggleTheme?.();
-      if (e.key === '?') setPaletteOpen(true);
+      switch (e.key) {
+        // T — toggle theme
+        case 't':
+        case 'T':
+          toggleTheme();
+          break;
+      }
     };
 
+    // Two-key sequence handler (g+d, g+g, etc.)
     let pending = null;
     let pendingTimer = null;
 
@@ -102,6 +74,7 @@ export default function AppLayout({ children }) {
       if (pending === 'g') {
         clearTimeout(pendingTimer);
         pending = null;
+
         const workspaceId = useWorkspaceStore.getState().currentWorkspace?.id;
         switch (e.key) {
           case 'd': router.push('/dashboard'); break;
@@ -119,6 +92,10 @@ export default function AppLayout({ children }) {
         pending = 'g';
         pendingTimer = setTimeout(() => { pending = null; }, 1000);
       }
+
+      if (e.key === '?') {
+        setPaletteOpen(true);
+      }
     };
 
     window.addEventListener('keydown', handleKey);
@@ -130,35 +107,27 @@ export default function AppLayout({ children }) {
     };
   }, [toggleTheme, router]);
 
-  // ── Loading state ──────────────────────────────────────
   if (isLoading) {
     return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: 'var(--th-bg, #09090b)' }}
-      >
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--th-bg)' }}>
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center animate-pulse">
-            <span className="text-white font-bold text-lg">T</span>
+            <span className="text-white font-display font-bold text-lg">T</span>
           </div>
-          <div className="text-sm text-zinc-500">Loading…</div>
+          <div className="text-sm" style={{ color: 'var(--th-text-3)' }}>Loading…</div>
         </div>
       </div>
     );
   }
 
-  // Don't render layout until authenticated — avoids flash of protected UI
   if (!isAuthenticated) return null;
 
   return (
-    <div
-      className="min-h-screen flex"
-      style={{ background: 'var(--th-bg, #09090b)' }}
-    >
-      {/* Mobile sidebar overlay */}
+    <div className="min-h-screen flex" style={{ background: 'var(--th-bg)' }}>
+      {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/60 z-30 lg:hidden animate-fade-in"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -168,10 +137,11 @@ export default function AppLayout({ children }) {
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
         <Header onPaletteOpen={() => setPaletteOpen(true)} />
         <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
-          <div className="max-w-7xl mx-auto">{children}</div>
+          <div className="max-w-7xl mx-auto animate-slide-up">{children}</div>
         </main>
       </div>
 
+      {/* ⌘K Command Palette */}
       <CommandPalette isOpen={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   );

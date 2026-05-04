@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { announcementApi } from '@/lib/api';
+import { announcementApi } from '@/lib/api1';
 import toast from 'react-hot-toast';
 
 export default function AnnouncementForm({ workspaceId, initial, onSuccess, onCancel }) {

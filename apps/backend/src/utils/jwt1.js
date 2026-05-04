@@ -25,39 +25,25 @@ const generateRefreshToken = async (userId) => {
 const setTokenCookies = (res, accessToken, refreshToken) => {
   const isProd = process.env.NODE_ENV === 'production';
 
-  // Access token cookie
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
-    // In production on HTTPS, use Secure + SameSite=None for cross-origin.
-    // In development (HTTP), SameSite=None is invalid without Secure,
-    // so we fall back to no sameSite restriction (most permissive for local dev).
     secure: isProd,
-    sameSite: isProd ? 'none' : false,
+    sameSite: isProd ? 'none' : 'lax',
     maxAge: 15 * 60 * 1000, // 15 minutes
   });
 
-  // Refresh token cookie — NO path restriction so it's sent on all requests.
-  // The endpoint itself validates that it's a refresh token.
   res.cookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: isProd,
-    sameSite: isProd ? 'none' : false,
+    sameSite: isProd ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    // Removed path restriction — path: '/api/auth/refresh' was blocking
-    // the cookie in some browser/CORS configurations
+    path: '/api/auth/refresh',
   });
 };
 
 const clearTokenCookies = (res) => {
-  const isProd = process.env.NODE_ENV === 'production';
-  const opts = { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : false };
-  res.clearCookie('accessToken', opts);
-  res.clearCookie('refreshToken', opts);
+  res.clearCookie('accessToken');
+  res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
 };
 
-module.exports = {
-  generateAccessToken,
-  generateRefreshToken,
-  setTokenCookies,
-  clearTokenCookies,
-};
+module.exports = { generateAccessToken, generateRefreshToken, setTokenCookies, clearTokenCookies };
