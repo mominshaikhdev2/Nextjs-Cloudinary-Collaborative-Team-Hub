@@ -3,10 +3,28 @@
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════
-   THEME TOKENS — CSS Custom Properties
+   TAILWIND v4 THEME CONFIGURATION
+   (Resolves "unknown utility class" errors for fonts and animations)
    ═══════════════════════════════════════════════════════ */
+@theme {
+  /* Fonts */
+  --font-display: var(--font-syne), sans-serif;
+  --font-sans: var(--font-dm-sans), sans-serif;
 
-/* Dark theme (default) */
+  /* Colors */
+  --color-zinc-950: #09090b;
+
+  /* Animations */
+  --animate-fade-in: fadeIn 0.3s ease forwards;
+  --animate-slide-up: slideUp 0.3s ease forwards;
+  --animate-slide-down: slideDown 0.2s ease forwards;
+  --animate-scale-in: scaleIn 0.2s ease forwards;
+  --animate-shimmer: shimmer 1.5s infinite;
+}
+
+/* ═══════════════════════════════════════════════════════
+   THEME TOKENS
+   ═══════════════════════════════════════════════════════ */
 :root,
 html.dark {
   --th-bg:        #09090b;
@@ -22,11 +40,9 @@ html.dark {
   --th-ring:      rgba(139,92,246,0.5);
   --th-violet:    #7c3aed;
   --th-violet-h:  #6d28d9;
-
   color-scheme: dark;
 }
 
-/* Light theme */
 html.light {
   --th-bg:        #ffffff;
   --th-surface:   #f4f4f5;
@@ -41,13 +57,9 @@ html.light {
   --th-ring:      rgba(139,92,246,0.4);
   --th-violet:    #7c3aed;
   --th-violet-h:  #6d28d9;
-
   color-scheme: light;
 }
 
-/* ═══════════════════════════════════════════════════════
-   FONT VARIABLES
-   ═══════════════════════════════════════════════════════ */
 :root {
   --font-syne:    'Syne', sans-serif;
   --font-dm-sans: 'DM Sans', sans-serif;
@@ -75,11 +87,24 @@ html.light {
   ::-webkit-scrollbar-thumb:hover { background: var(--th-border-2); }
 
   ::selection { background: rgba(139,92,246,0.3); color: var(--th-text-1); }
+
+  @keyframes fadeIn    { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes slideUp   { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-8px) } to { opacity: 1; transform: translateY(0) } }
+  @keyframes scaleIn   { from { opacity: 0; transform: scale(0.95) } to { opacity: 1; transform: scale(1) } }
+  @keyframes shimmer   { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 }
 
 /* ═══════════════════════════════════════════════════════
-   THEME UTILITY CLASSES (use these in JSX instead of Tailwind zinc)
+   CUSTOM TAILWIND UTILITIES (Root Level)
    ═══════════════════════════════════════════════════════ */
+@utility card {
+  background: var(--th-surface);
+  border: 1px solid var(--th-border);
+  @apply rounded-xl;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
 @layer utilities {
   .th-bg        { background: var(--th-bg); }
   .th-surface   { background: var(--th-surface); }
@@ -96,16 +121,9 @@ html.light {
 }
 
 /* ═══════════════════════════════════════════════════════
-   COMPONENT CLASSES
+   COMPONENTS
    ═══════════════════════════════════════════════════════ */
 @layer components {
-  .card {
-    background: var(--th-surface);
-    border: 1px solid var(--th-border);
-    @apply rounded-xl;
-    transition: background 0.2s ease, border-color 0.2s ease;
-  }
-
   .card-hover {
     @apply card;
     &:hover {
@@ -126,16 +144,16 @@ html.light {
     background: var(--th-surface);
     border: 1px solid var(--th-border-2);
     color: var(--th-text-1);
-    &:hover { background: var(--th-surface-2); }
     @apply font-medium px-4 py-2 rounded-lg transition-all duration-150
            active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none
            flex items-center gap-2 text-sm;
+    &:hover { background: var(--th-surface-2); }
   }
 
   .btn-ghost {
     color: var(--th-text-3);
-    &:hover { background: var(--th-surface-2); color: var(--th-text-1); }
     @apply font-medium px-3 py-2 rounded-lg transition-all duration-150 flex items-center gap-2 text-sm;
+    &:hover { background: var(--th-surface-2); color: var(--th-text-1); }
   }
 
   .btn-danger {
@@ -151,24 +169,12 @@ html.light {
     color: var(--th-text-1);
     @apply rounded-lg px-3 py-2 text-sm;
     transition: border-color 0.15s, box-shadow 0.15s;
-
     &::placeholder { color: var(--th-text-4); }
-
     &:focus {
       outline: none;
       border-color: var(--th-violet);
       box-shadow: 0 0 0 3px var(--th-ring);
     }
-
-    select& option {
-      background: var(--th-surface);
-      color: var(--th-text-1);
-    }
-  }
-
-  select.input {
-    background: var(--th-surface);
-    color: var(--th-text-1);
   }
 
   .label {
@@ -191,13 +197,7 @@ html.light {
     font-weight: 500;
     color: var(--th-text-3);
     transition: all 0.15s;
-
-    &:hover {
-      color: var(--th-text-1);
-      background: var(--th-surface-2);
-    }
-
-    &.active {
+    &:hover, &.active {
       color: var(--th-text-1);
       background: var(--th-surface-2);
     }
@@ -219,41 +219,23 @@ html.light {
   }
 
   .shimmer {
-    background: linear-gradient(
-      90deg,
-      var(--th-surface) 25%,
-      var(--th-surface-2) 50%,
-      var(--th-surface) 75%
-    );
+    background: linear-gradient(90deg, var(--th-surface) 25%, var(--th-surface-2) 50%, var(--th-surface) 75%);
     background-size: 200% 100%;
     @apply animate-shimmer;
   }
 
-  /* Modal */
   .modal-backdrop { @apply fixed inset-0 z-50 flex items-center justify-center p-4; }
   .modal-overlay  { @apply absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in; }
   .modal-content  {
-    @apply relative w-full animate-scale-in;
+    @apply relative w-full animate-scale-in rounded-xl;
     background: var(--th-surface);
     border: 1px solid var(--th-border);
     box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-    @apply rounded-xl;
   }
 }
 
 /* ═══════════════════════════════════════════════════════
-   ANIMATIONS
-   ═══════════════════════════════════════════════════════ */
-@layer base {
-  @keyframes fadeIn    { from { opacity: 0 } to { opacity: 1 } }
-  @keyframes slideUp   { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: translateY(0) } }
-  @keyframes slideDown { from { opacity: 0; transform: translateY(-8px) } to { opacity: 1; transform: translateY(0) } }
-  @keyframes scaleIn   { from { opacity: 0; transform: scale(0.95) } to { opacity: 1; transform: scale(1) } }
-  @keyframes shimmer   { '0%' { background-position: -200% 0 } '100%' { background-position: 200% 0 } }
-}
-
-/* ═══════════════════════════════════════════════════════
-   RICH TEXT
+   RICH TEXT & MISC
    ═══════════════════════════════════════════════════════ */
 .rich-content h1, .rich-content h2, .rich-content h3 {
   font-family: var(--font-syne);
@@ -261,31 +243,16 @@ html.light {
   color: var(--th-text-1);
   margin-bottom: 0.5rem;
 }
-.rich-content h1 { font-size: 1.25rem; }
-.rich-content h2 { font-size: 1.125rem; }
-.rich-content h3 { font-size: 1rem; }
 .rich-content p  { color: var(--th-text-2); margin-bottom: 0.75rem; font-size: 0.875rem; line-height: 1.6; }
-.rich-content ul, .rich-content ol { color: var(--th-text-2); font-size: 0.875rem; margin-bottom: 0.75rem; padding-left: 1.25rem; }
-.rich-content li { margin-bottom: 0.25rem; }
-.rich-content strong { color: var(--th-text-1); font-weight: 600; }
 .rich-content a { color: #a78bfa; text-decoration: underline; }
-.rich-content a:hover { color: #c4b5fd; }
-.rich-content blockquote { border-left: 4px solid var(--th-violet); padding-left: 1rem; color: var(--th-text-3); font-style: italic; }
 
-/* ═══════════════════════════════════════════════════════
-   KANBAN
-   ═══════════════════════════════════════════════════════ */
 .kanban-dragging     { box-shadow: 0 25px 50px rgba(0,0,0,0.5); transform: rotate(1deg) scale(1.05); }
 .kanban-drop-target  { box-shadow: 0 0 0 2px rgba(139,92,246,0.5); }
 
-/* ═══════════════════════════════════════════════════════
-   COMMAND PALETTE BACKDROP
-   ═══════════════════════════════════════════════════════ */
 .palette-backdrop {
   @apply fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4;
   background: rgba(0,0,0,0.6);
   backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   animation: fadeIn 0.15s ease;
 }
 .palette-box {
