@@ -16,6 +16,7 @@
       "persistent": true
     },
     "start": {
+      "dependsOn": ["db:generate"],
       "cache": false,
       "persistent": true
     },

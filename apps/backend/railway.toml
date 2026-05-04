@@ -5,7 +5,7 @@
 
 [deploy]
   # Target the start script inside the backend package
-  startCommand = "node src/index.js"
+  startCommand = "pnpm start"
   healthcheckPath = "/api/health"
   healthcheckTimeout = 60
   restartPolicyType = "on_failure"
