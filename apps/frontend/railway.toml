@@ -5,5 +5,5 @@
 [deploy]
   startCommand = "pnpm start"
   healthcheckPath = "/"
-  healthcheckTimeout = 30
+  healthcheckTimeout = 60
   restartPolicyType = "on_failure"

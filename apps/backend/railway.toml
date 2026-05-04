@@ -1,9 +1,11 @@
 [build]
   builder = "nixpacks"
-  buildCommand = "pnpm install"
+  # Tell pnpm to look specifically at the backend package
+  buildCommand = "pnpm install && pnpm --filter backend build"
 
 [deploy]
-  startCommand = "pnpm start"
+  # Target the start script inside the backend package
+  startCommand = "pnpm --filter backend start"
   healthcheckPath = "/api/health"
   healthcheckTimeout = 30
   restartPolicyType = "on_failure"
