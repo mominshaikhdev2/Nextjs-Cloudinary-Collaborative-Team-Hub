@@ -1,8 +1,9 @@
 {
-  "name": "team-hub",
+  "name": "collaborative-team-hub",
   "private": true,
   "workspaces": [
-    "apps/*"
+    "frontend",
+    "backend"
   ],
   "scripts": {
     "dev": "turbo run dev",

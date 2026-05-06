@@ -1,0 +1,12 @@
+[build]
+  builder = "nixpacks"
+  # 1. Detect DB from DATABASE_URL and copy the right schema
+  # 2. Generate Prisma client
+  # 3. Run migrate deploy (PostgreSQL) or db push (MongoDB)
+  buildCommand = "pnpm install && node scripts/setup-db.js && pnpm prisma generate && node scripts/db-deploy.js"
+
+[deploy]
+  startCommand = "node src/index.js"
+  healthcheckPath = "/api/health"
+  healthcheckTimeout = 60
+  restartPolicyType = "on_failure"
